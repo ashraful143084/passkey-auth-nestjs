@@ -7,7 +7,7 @@ export class AuthService {
   constructor(
     private users: UsersService,
     private jwt: JwtService,
-  ) {}
+  ) { }
 
   async register(email: string, password: string) {
     const user = await this.users.create(email, password);
@@ -19,12 +19,26 @@ export class AuthService {
     if (!user) throw new Error('Invalid credentials');
 
     return {
-      accessToken: this.jwt.sign({
-        sub: user._id,
-        amr: ['password'],
-      }),
+      accessToken: this.generateAccessToken(user),
+      refreshToken: this.generateRefreshToken(user),
       hasPasskey: user.hasPasskey,
       user: user,
     };
+  }
+
+  generateAccessToken(user: any) {
+    return this.jwt.sign({
+      sub: user._id,
+      email: user.email,
+      amr: ['password'], // or 'passkey' if applicable, maybe make this dynamic?
+    });
+  }
+
+  generateRefreshToken(user: any) {
+    // For now, simple JWT for refresh token too, or whatever logic is preferred
+    return this.jwt.sign({
+      sub: user._id,
+      type: 'refresh',
+    }, { expiresIn: '7d' });
   }
 }

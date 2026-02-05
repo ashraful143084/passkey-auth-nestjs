@@ -5,13 +5,15 @@ import { PasskeyService } from './passkey.service';
 import { PasskeyController } from './passkey.controller';
 import { ChallengeService } from '../common/challenge.service';
 import { UsersModule } from '../users/users.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Passkey', schema: PasskeySchema }]),
     UsersModule,
+    AuthModule,
   ],
   providers: [PasskeyService, ChallengeService],
   controllers: [PasskeyController],
 })
-export class PasskeyModule {}
+export class PasskeyModule { }

@@ -16,11 +16,11 @@ export class PasskeyService {
     private users: UsersService,
   ) {}
 
-  async startRegistration(user) {
+  async startRegistration(user: any) {
     const options = await generateRegistrationOptions({
       rpName: process.env.RP_NAME || '',
       rpID: process.env.RP_ID || '',
-      userID: user.id,
+      userID: user._id,
       userName: user.email,
     });
 

@@ -1,17 +1,17 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { PasskeyService } from './passkey.service';
 
-@Controller('passkeys')
+@Controller('/api/auth/passkeys')
 export class PasskeyController {
   constructor(private passkeys: PasskeyService) {}
 
-  @Post('register/start')
-  start(@Body() body) {
+  @Post('/register')
+  start(@Body() body: any) {
     return this.passkeys.startRegistration(body.user);
   }
 
-  @Post('register/finish')
-  finish(@Body() body) {
+  @Post('/verify')
+  finish(@Body() body: any) {
     return this.passkeys.finishRegistration(body.user, body.credential);
   }
 }

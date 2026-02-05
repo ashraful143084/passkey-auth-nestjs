@@ -12,4 +12,6 @@ export class User {
   hasPasskey: boolean;
 }
 
+export type UserDocument = User & Document;
+
 export const UserSchema = SchemaFactory.createForClass(User);

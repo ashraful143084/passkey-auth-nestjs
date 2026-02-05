@@ -24,6 +24,7 @@ export class AuthService {
         amr: ['password'],
       }),
       hasPasskey: user.hasPasskey,
+      user: user,
     };
   }
 }

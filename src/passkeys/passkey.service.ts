@@ -37,7 +37,7 @@ export class PasskeyService {
     return options;
   }
 
-  async finishRegistration(user: any, response: any) {
+  async finishRegistration(user: any, response: any, name: string, userAgent: string) {
     const challenge = await this.challenges.get(`reg:${user.id}`);
 
     console.log('Challenge', challenge);
@@ -61,6 +61,9 @@ export class PasskeyService {
       credentialId: Buffer.from(credential.id).toString('base64url'),
       publicKey: Buffer.from(credential.publicKey).toString('base64'),
       counter: credential.counter,
+      name: name || 'Unknown Device',
+      transports: response.response.transports || [],
+      userAgent: userAgent,
     });
 
     await this.users.enablePasskey(user.id);
@@ -206,5 +209,9 @@ export class PasskeyService {
     }
 
     return { verified: false };
+  }
+
+  async getUserPasskeys(userId: string) {
+    return this.passkeyModel.find({ userId }).sort({ createdAt: -1 }).exec();
   }
 }

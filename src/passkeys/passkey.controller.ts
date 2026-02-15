@@ -16,7 +16,19 @@ export class PasskeyController {
     if (!user || !user.id) {
       throw new BadRequestException('User object or userId is required in the request body');
     }
-    return this.passkeys.finishRegistration(user, body.credential);
+    const userAgent = (body.userAgent as string) || '';
+    const name = (body.name as string) || 'Passkey';
+
+    return this.passkeys.finishRegistration(user, body.credential, name, userAgent);
+  }
+
+  @Post('list')
+  async list(@Body() body: any) {
+    const userId = body.userId;
+    if (!userId) {
+      throw new BadRequestException('userId is required');
+    }
+    return this.passkeys.getUserPasskeys(userId);
   }
 
   @Post('authenticate')

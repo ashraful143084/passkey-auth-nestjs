@@ -6,13 +6,22 @@ export class Passkey {
   userId: string;
 
   @Prop()
-  credentialId: string;
+  credentialId: string; // Base64URL encoded credential ID
 
   @Prop()
-  publicKey: string;
+  publicKey: string; // Base64 encoded public key
 
   @Prop()
   counter: number;
+
+  @Prop()
+  name: string; // User-friendly name (e.g. "My MacBook")
+
+  @Prop({ type: [String] })
+  transports: string[]; // ['usb', 'nfc', 'ble', 'internal']
+
+  @Prop()
+  userAgent: string; // Browser/Device details during registration
 }
 
 export const PasskeySchema = SchemaFactory.createForClass(Passkey);

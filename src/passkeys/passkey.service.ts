@@ -30,6 +30,7 @@ export class PasskeyService {
       rpID: process.env.RP_ID || '',
       userID: new TextEncoder().encode(user.id), // Converted to Uint8Array
       userName: user.email,
+      userDisplayName: user.email,
     });
 
     await this.challenges.set(`reg:${user.id}`, options.challenge);

@@ -59,7 +59,7 @@ export class PasskeyService {
 
     await this.passkeyModel.create({
       userId: user.id,
-      credentialId: Buffer.from(credential.id).toString('base64url'),
+      credentialId: credential.id, // ID is already Base64URL encoded from verifyRegistrationResponse
       publicKey: Buffer.from(credential.publicKey).toString('base64'),
       counter: credential.counter,
       name: name || 'Unknown Device',
@@ -101,12 +101,6 @@ export class PasskeyService {
     // Ensure input is properly padded before decoding if it's raw base64url
     const userId = Buffer.from(userHandleBase64, 'base64').toString('utf-8');
 
-    // 2. Fetch the user's passkey from database using userId
-    const userPasskey = await this.passkeyModel.findOne({ userId });
-
-    if (!userPasskey) {
-      throw new UnauthorizedException('Passkey not found for user: ' + userId);
-    }
 
     // 3. Get the challenge - either from parameter or extract from clientDataJSON
     let challenge = expectedChallenge;
@@ -132,8 +126,6 @@ export class PasskeyService {
       while (base64.length % 4) {
         base64 += '=';
       }
-      // 3. Decode to buffer
-      // 4. Encode back to Base64URL
       return Buffer.from(base64, 'base64').toString('base64url');
     };
 
@@ -153,7 +145,30 @@ export class PasskeyService {
       response: normalizedResponse
     };
 
-    console.log('Normalized Credential:', JSON.stringify(normalizedCredential, null, 2));
+    console.log('Looking up passkey for userId:', userId, 'and credentialId:', normalizedCredential.id);
+
+    // 2. Fetch the user's passkey from database using userId AND credentialId
+    let userPasskey = await this.passkeyModel.findOne({ 
+      userId, 
+      credentialId: normalizedCredential.id 
+    });
+
+    // Backward compatibility: If not found, try double-encoded version (base64url of base64url)
+    if (!userPasskey) {
+      const doubleEncodedId = Buffer.from(normalizedCredential.id).toString('base64url');
+      console.log('Passkey not found with standard ID, trying double-encoded:', doubleEncodedId);
+      userPasskey = await this.passkeyModel.findOne({ 
+        userId, 
+        credentialId: doubleEncodedId 
+      });
+    }
+
+    if (!userPasskey) {
+      console.error('Passkey NOT found in DB. Total passkeys for this user:');
+      const allUserPasskeys = await this.passkeyModel.find({ userId });
+      console.log(allUserPasskeys.map(p => ({ id: p.credentialId, name: p.name })));
+      throw new UnauthorizedException('Passkey not found for user: ' + userId + ' with credential: ' + normalizedCredential.id);
+    }
 
     try {
       // 4. Verify the authentication
@@ -201,6 +216,10 @@ export class PasskeyService {
             email: user.email,
             accessToken: this.authService.generateAccessToken(user),
             refreshToken: this.authService.generateRefreshToken(user),
+          },
+          passkey: {
+            name: userPasskey.name,
+            userAgent: userPasskey.userAgent,
           }
         };
       }
